@@ -54,12 +54,6 @@ int json_global_set_string_hash(const int h)
 	return 0;
 }
 
-static unsigned long lh_ptr_hash(const void *k)
-{
-	/* CAW: refactored to be 64bit nice */
-	return (unsigned long)((((ptrdiff_t)k * LH_PRIME) >> 4) & ULONG_MAX);
-}
-
 int lh_ptr_equal(const void *k1, const void *k2)
 {
 	return (k1 == k2);
@@ -496,8 +490,7 @@ int lh_char_equal(const void *k1, const void *k2)
 	return (strcmp((const char *)k1, (const char *)k2) == 0);
 }
 
-struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn,
-                              lh_equal_fn *equal_fn)
+struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn)
 {
 	int i;
 	struct lh_table *t;
@@ -518,7 +511,6 @@ struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *h
 	}
 	t->free_fn = free_fn;
 	t->hash_fn = hash_fn;
-	t->equal_fn = equal_fn;
 	for (i = 0; i < size; i++)
 		t->table[i].k = LH_EMPTY;
 	return t;
@@ -526,12 +518,7 @@ struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *h
 
 struct lh_table *lh_kchar_table_new(int size, lh_entry_free_fn *free_fn)
 {
-	return lh_table_new(size, free_fn, char_hash_fn, lh_char_equal);
-}
-
-struct lh_table *lh_kptr_table_new(int size, lh_entry_free_fn *free_fn)
-{
-	return lh_table_new(size, free_fn, lh_ptr_hash, lh_ptr_equal);
+	return lh_table_new(size, free_fn, char_hash_fn);
 }
 
 int lh_table_resize(struct lh_table *t, int new_size)
@@ -539,7 +526,7 @@ int lh_table_resize(struct lh_table *t, int new_size)
 	struct lh_table *new_t;
 	struct lh_entry *ent;
 
-	new_t = lh_table_new(new_size, NULL, t->hash_fn, t->equal_fn);
+	new_t = lh_table_new(new_size, NULL, t->hash_fn);
 	if (new_t == NULL)
 		return -1;
 
@@ -635,7 +622,7 @@ struct lh_entry *lh_table_lookup_entry_w_hash(struct lh_table *t, const void *k,
 	{
 		if (t->table[n].k == LH_EMPTY)
 			return NULL;
-		if (t->table[n].k != LH_FREED && t->equal_fn(t->table[n].k, k))
+		if (t->table[n].k != LH_FREED && lh_char_equal(t->table[n].k, k))
 			return &t->table[n];
 		if ((int)++n == t->size)
 			n = 0;

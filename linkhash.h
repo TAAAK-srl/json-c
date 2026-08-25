@@ -74,10 +74,6 @@ typedef void(lh_entry_free_fn)(struct lh_entry *e);
  * callback function prototypes
  */
 typedef unsigned long(lh_hash_fn)(const void *k);
-/**
- * callback function prototypes
- */
-typedef int(lh_equal_fn)(const void *k1, const void *k2);
 
 /**
  * An entry in the hash table.  Outside of linkhash.c, treat this as opaque.
@@ -155,10 +151,6 @@ struct lh_table
 	 * @deprecated do not use outside of linkhash.c
 	 */
 	lh_hash_fn *hash_fn;
-	/**
-	 * @deprecated do not use outside of linkhash.c
-	 */
-	lh_equal_fn *equal_fn;
 };
 typedef struct lh_table lh_table;
 
@@ -189,14 +181,10 @@ typedef struct lh_table lh_table;
  * @param hash_fn  function used to hash keys. 2 standard ones are defined:
  * lh_ptr_hash and lh_char_hash for hashing pointer values
  * and C strings respectively.
- * @param equal_fn comparison function to compare keys. 2 standard ones defined:
- * lh_ptr_hash and lh_char_hash for comparing pointer values
- * and C strings respectively.
  * @return On success, a pointer to the new linkhash table is returned.
  * 	On error, a null pointer is returned.
  */
-extern struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn,
-                                     lh_equal_fn *equal_fn);
+extern struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_hash_fn *hash_fn);
 
 /**
  * Convenience function to create a new linkhash table with char keys.
@@ -207,16 +195,6 @@ extern struct lh_table *lh_table_new(int size, lh_entry_free_fn *free_fn, lh_has
  * 	On error, a null pointer is returned.
  */
 extern struct lh_table *lh_kchar_table_new(int size, lh_entry_free_fn *free_fn);
-
-/**
- * Convenience function to create a new linkhash table with ptr keys.
- *
- * @param size initial table size.
- * @param free_fn callback function used to free memory for entries.
- * @return On success, a pointer to the new linkhash table is returned.
- * 	On error, a null pointer is returned.
- */
-extern struct lh_table *lh_kptr_table_new(int size, lh_entry_free_fn *free_fn);
 
 /**
  * Free a linkhash table.

@@ -149,8 +149,6 @@ JSONC_0.14 {
     json_util_get_last_err;
     lh_char_equal;
     lh_kchar_table_new;
-    lh_kptr_table_new;
-    lh_ptr_equal;
     lh_table_length;
     lh_table_lookup_entry;
     lh_table_lookup_entry_w_hash;
